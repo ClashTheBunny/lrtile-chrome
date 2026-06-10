@@ -12,10 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// lrTile - Manifest V3 Service Worker
+// NovaSnap - Manifest V3 Service Worker
 
-let lrOptions = { on: 1, border: 2, logLevel: 0 };
-let lrDisplays = [];
+let nsOptions = { on: 1, border: 2, logLevel: 0 };
+let nsDisplays = [];
 
 // Cycle state for subsequent keypresses
 let lastAction = null;
@@ -26,12 +26,13 @@ const CYCLE_TIMEOUT = 1000; // 1 second timeout to cycle layouts
 
 // printf-like logging, no deep object print
 function L(level, ...args) {
-    if (level <= lrOptions.logLevel) {
+    if (level <= nsOptions.logLevel) {
         console.log(PF(...args));
     }
 }
 
-function PF() {  // simplified printf
+// simplified printf
+function PF() {
     let n = arguments.length, res = arguments[0];
     for (let i = 1; i < n; i++) {
         res = res.replace(/%[dus]/, arguments[i]);
@@ -47,16 +48,16 @@ function getDisplayArea(win) {
     const cX = win.left + Math.floor(win.width / 2);
     const cY = win.top + Math.floor(win.height / 2);
     
-    for (let i = 0; i < lrDisplays.length; i++) {
-        const d = lrDisplays[i].workArea;
+    for (let i = 0; i < nsDisplays.length; i++) {
+        const d = nsDisplays[i].workArea;
         if (cX >= d.left && cX < d.left + d.width &&
             cY >= d.top && cY < d.top + d.height) {
             return [ d.left, d.top, d.width, d.height ];
         }
     }
     // Fallback to first display if not found
-    if (lrDisplays.length > 0) {
-        const d = lrDisplays[0].workArea;
+    if (nsDisplays.length > 0) {
+        const d = nsDisplays[0].workArea;
         return [ d.left, d.top, d.width, d.height ];
     }
     return null;
@@ -95,11 +96,11 @@ async function doCmd(cmd, win) {
         ]);
 
         if (options && Object.keys(options).length > 0) {
-            lrOptions = { ...lrOptions, ...options };
+            nsOptions = { ...nsOptions, ...options };
         }
-        lrDisplays = displays;
+        nsDisplays = displays;
 
-        if (!lrOptions.on) return;
+        if (!nsOptions.on) return;
         
         let [wX, wY, wW, wH] = [ win.left, win.top, win.width, win.height ];
         L(0, "CMD %s window %dx%d@%d,%d type %s id %s",
@@ -109,7 +110,7 @@ async function doCmd(cmd, win) {
         if (!displayArea) return L(0, "no display area found");
         const [mX, mY, mW, mH] = displayArea;
         
-        const border = parseInt(lrOptions.border) || 0;
+        const border = parseInt(nsOptions.border) || 0;
         
         let newX = wX, newY = wY, newW = wW, newH = wH;
         
@@ -138,7 +139,7 @@ async function doCmd(cmd, win) {
         const twoThirdsH = Math.floor(mH * 2 / 3);
 
         switch (action) {
-        case 'lr-left-half':
+        case 'ns-left-half':
             newX = mX;
             newY = mY;
             newH = mH - border;
@@ -151,7 +152,7 @@ async function doCmd(cmd, win) {
             }
             break;
             
-        case 'lr-right-half':
+        case 'ns-right-half':
             newY = mY;
             newH = mH - border;
             if (cycleIndex === 0) {
@@ -166,7 +167,7 @@ async function doCmd(cmd, win) {
             }
             break;
             
-        case 'lr-top-half':
+        case 'ns-top-half':
             newX = mX;
             newW = mW - border;
             if (cycleIndex === 0) {
@@ -181,7 +182,7 @@ async function doCmd(cmd, win) {
             }
             break;
             
-        case 'lr-bottom-half':
+        case 'ns-bottom-half':
             newX = mX;
             newW = mW - border;
             if (cycleIndex === 0) {
@@ -196,38 +197,38 @@ async function doCmd(cmd, win) {
             }
             break;
 
-        case 'lr-top-left':
+        case 'ns-top-left':
             newX = mX;
             newY = mY;
             newW = oneHalfW - border;
             newH = oneHalfH - border;
             break;
-        case 'lr-top-right':
+        case 'ns-top-right':
             newX = mX + oneHalfW;
             newY = mY;
             newW = oneHalfW - border;
             newH = oneHalfH - border;
             break;
-        case 'lr-bottom-left':
+        case 'ns-bottom-left':
             newX = mX;
             newY = mY + oneHalfH;
             newW = oneHalfW - border;
             newH = oneHalfH - border;
             break;
-        case 'lr-bottom-right':
+        case 'ns-bottom-right':
             newX = mX + oneHalfW;
             newY = mY + oneHalfH;
             newW = oneHalfW - border;
             newH = oneHalfH - border;
             break;
             
-        case 'lr-maximize':
+        case 'ns-maximize':
             newX = mX;
             newY = mY;
             newW = mW - border;
             newH = mH - border;
             break;
-        case 'lr-center':
+        case 'ns-center':
             newX = mX + Math.floor((mW - wW) / 2);
             newY = mY + Math.floor((mH - wH) / 2);
             break;
@@ -252,7 +253,7 @@ async function doCmd(cmd, win) {
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     if (request.update) {
         chrome.storage.local.get(null, options => {
-            if (options) lrOptions = { ...lrOptions, ...options };
+            if (options) nsOptions = { ...nsOptions, ...options };
         });
     } else if (request.action) {
         if (request.windowId) {

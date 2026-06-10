@@ -1,12 +1,12 @@
 {
   "manifest_version": 3,
 
-  "name": "lrTile, Tiling Window mover for Chrome",
-  "short_name": "lrtile",
+  "name": "NovaSnap",
+  "short_name": "novasnap",
   "description":
-     "lrTile uses keyboard shortcuts and a popup menu to snap windows to halves, quarters, and more, Rectangle-style.",
+     "NovaSnap uses keyboard shortcuts and a popup menu to snap windows to halves, quarters, and more, Rectangle-style.",
   "version": "0.3",
-  "icons": {"256": "lrtile.png"},
+  "icons": {"256": "novasnap.png"},
 
   "permissions": [
     "tabs",
@@ -20,71 +20,71 @@
   },
 
   "action": {
-    "default_icon": "lrtile.png",
+    "default_icon": "novasnap.png",
     "default_popup": "popup.html",
-    "default_title": "lrTile"
+    "default_title": "NovaSnap"
   },
 
   "background" : {
-    "service_worker": "lrtile.js"
+    "service_worker": "novasnap.js"
   },
 
   "commands": {
-    "01-lr-left-half": {
+    "01-ns-left-half": {
       "description": "Left Half",
       "suggested_key": {
         "default": "Alt+Home"
       }
     },
-    "02-lr-right-half": {
+    "02-ns-right-half": {
       "description": "Right Half",
       "suggested_key": {
         "default": "Alt+End"
       }
     },
-    "03-lr-top-half": {
+    "03-ns-top-half": {
       "description": "Top Half",
       "suggested_key": {
         "default": "Alt+PageUp"
       }
     },
-    "04-lr-bottom-half": {
+    "04-ns-bottom-half": {
       "description": "Bottom Half",
       "suggested_key": {
         "default": "Alt+PageDown"
       }
     },
-    "05-lr-top-left": {
+    "05-ns-top-left": {
       "description": "Top Left Quarter",
       "suggested_key": {
         "default": "Ctrl+Home"
       }
     },
-    "06-lr-top-right": {
+    "06-ns-top-right": {
       "description": "Top Right Quarter",
       "suggested_key": {
         "default": "Ctrl+End"
       }
     },
-    "07-lr-bottom-left": {
+    "07-ns-bottom-left": {
       "description": "Bottom Left Quarter",
       "suggested_key": {
         "default": "Ctrl+Shift+Home"
       }
     },
-    "08-lr-bottom-right": {
+    "08-ns-bottom-right": {
       "description": "Bottom Right Quarter",
       "suggested_key": {
         "default": "Ctrl+Shift+End"
       }
     },
-    "09-lr-maximize": {
+    "09-ns-maximize": {
       "description": "Maximize",
       "suggested_key": {
         "default": "Alt+Shift+F"
       }
     },
-    "10-lr-center": {
+    "10-ns-center": {
       "description": "Center",
       "suggested_key": {
         "default": "Alt+Shift+C"

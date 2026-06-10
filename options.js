@@ -1,6 +1,6 @@
-// options.js - MV3 Options Script for lrTile
+// options.js - MV3 Options Script for NovaSnap
 
-let lrOptions = { on: 1, border: 2, logLevel: 0 };
+let nsOptions = { on: 1, border: 2, logLevel: 0 };
 
 function g(id) { return document.getElementById(id); }
 
@@ -22,7 +22,7 @@ function initOptionsPage() {
 	commands.forEach(cmd => {
 	    const val = cmd.shortcut ? cmd.shortcut.replace(" Arrow","") : "Not set";
             const action = cmd.name.replace(/^[0-9]+-/, '');
-            const iconClass = action.replace('lr-', ''); // e.g. "left-half"
+            const iconClass = action.replace('ns-', ''); // e.g. "left-half"
             
             const iconHtml = `<div class="action-cell">
                 <div class="mini-icon ${iconClass}"><div class="mini-fill"></div></div>
@@ -36,19 +36,19 @@ function initOptionsPage() {
     });
 
     // restore input fields from local storage.
-    clGet(lrOptions, ret => {
+    clGet(nsOptions, ret => {
         if (ret) {
-            lrOptions = { ...lrOptions, ...ret };
-            g('on').checked = lrOptions.on;
-            if (g('border')) g('border').value = lrOptions.border;
+            nsOptions = { ...nsOptions, ...ret };
+            g('on').checked = nsOptions.on;
+            if (g('border')) g('border').value = nsOptions.border;
         }
     });
 
     const doSave = (ev) => {
-	lrOptions.on = g('on').checked;
-        if (g('border')) lrOptions.border = g('border').value;
-	console.log("--- Saved values", lrOptions);
-	chrome.storage.local.set(lrOptions, () => {
+	nsOptions.on = g('on').checked;
+        if (g('border')) nsOptions.border = g('border').value;
+	console.log("--- Saved values", nsOptions);
+	chrome.storage.local.set(nsOptions, () => {
             // Notify background service worker to reload options
             chrome.runtime.sendMessage({"update": true});
             window.close();
