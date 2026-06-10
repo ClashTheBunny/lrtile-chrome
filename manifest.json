@@ -32,37 +32,63 @@
   "commands": {
     "01-lr-left-half": {
       "description": "Left Half",
-      "suggested_key": { "default": "Ctrl+Shift+Left" }
+      "suggested_key": {
+        "default": "Alt+Home"
+      }
     },
     "02-lr-right-half": {
       "description": "Right Half",
-      "suggested_key": { "default": "Ctrl+Shift+Right" }
+      "suggested_key": {
+        "default": "Alt+End"
+      }
     },
     "03-lr-top-half": {
-      "description": "Top Half"
+      "description": "Top Half",
+      "suggested_key": {
+        "default": "Alt+PageUp"
+      }
     },
     "04-lr-bottom-half": {
-      "description": "Bottom Half"
+      "description": "Bottom Half",
+      "suggested_key": {
+        "default": "Alt+PageDown"
+      }
     },
     "05-lr-top-left": {
-      "description": "Top Left Quarter"
+      "description": "Top Left Quarter",
+      "suggested_key": {
+        "default": "Ctrl+Home"
+      }
     },
     "06-lr-top-right": {
-      "description": "Top Right Quarter"
+      "description": "Top Right Quarter",
+      "suggested_key": {
+        "default": "Ctrl+End"
+      }
     },
     "07-lr-bottom-left": {
-      "description": "Bottom Left Quarter"
+      "description": "Bottom Left Quarter",
+      "suggested_key": {
+        "default": "Ctrl+Shift+Home"
+      }
     },
     "08-lr-bottom-right": {
-      "description": "Bottom Right Quarter"
+      "description": "Bottom Right Quarter",
+      "suggested_key": {
+        "default": "Ctrl+Shift+End"
+      }
     },
     "09-lr-maximize": {
       "description": "Maximize",
-      "suggested_key": { "default": "Alt+Shift+F" }
+      "suggested_key": {
+        "default": "Alt+Shift+F"
+      }
     },
     "10-lr-center": {
       "description": "Center",
-      "suggested_key": { "default": "Alt+Shift+C" }
+      "suggested_key": {
+        "default": "Alt+Shift+C"
+      }
     }
   }
 }
