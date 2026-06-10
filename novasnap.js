@@ -200,26 +200,54 @@ async function doCmd(cmd, win) {
         case 'ns-top-left':
             newX = mX;
             newY = mY;
-            newW = oneHalfW - border;
             newH = oneHalfH - border;
+            if (cycleIndex === 0) {
+                newW = oneHalfW - border;
+            } else if (cycleIndex === 1) {
+                newW = oneThirdW - border;
+            } else { // 2
+                newW = twoThirdsW - border;
+            }
             break;
         case 'ns-top-right':
-            newX = mX + oneHalfW;
             newY = mY;
-            newW = oneHalfW - border;
             newH = oneHalfH - border;
+            if (cycleIndex === 0) {
+                newX = mX + oneHalfW;
+                newW = oneHalfW - border;
+            } else if (cycleIndex === 1) {
+                newX = mX + twoThirdsW; // occupies right 1/3
+                newW = oneThirdW - border;
+            } else { // 2
+                newX = mX + oneThirdW; // occupies right 2/3
+                newW = twoThirdsW - border;
+            }
             break;
         case 'ns-bottom-left':
             newX = mX;
             newY = mY + oneHalfH;
-            newW = oneHalfW - border;
             newH = oneHalfH - border;
+            if (cycleIndex === 0) {
+                newW = oneHalfW - border;
+            } else if (cycleIndex === 1) {
+                newW = oneThirdW - border;
+            } else { // 2
+                newW = twoThirdsW - border;
+            }
             break;
         case 'ns-bottom-right':
-            newX = mX + oneHalfW;
             newY = mY + oneHalfH;
-            newW = oneHalfW - border;
             newH = oneHalfH - border;
+            if (cycleIndex === 0) {
+                newX = mX + oneHalfW;
+                newW = oneHalfW - border;
+            } else if (cycleIndex === 1) {
+                newX = mX + twoThirdsW; // occupies right 1/3
+                newW = oneThirdW - border;
+            } else { // 2
+                newX = mX + oneThirdW; // occupies right 2/3
+                newW = twoThirdsW - border;
+            }
             break;
             
         case 'ns-maximize':
@@ -271,8 +299,3 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 chrome.commands.onCommand.addListener(cmd => {
     doCmd(cmd);
 });
-
-
-
-
-

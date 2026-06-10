@@ -6,7 +6,13 @@
   "description":
      "NovaSnap uses keyboard shortcuts and a popup menu to snap windows to halves, quarters, and more, Rectangle-style.",
   "version": "0.3",
-  "icons": {"256": "novasnap.png"},
+  "icons": {
+    "16": "icon16.png",
+    "32": "icon32.png",
+    "48": "icon48.png",
+    "128": "icon128.png",
+    "256": "icon256.png"
+  },
 
   "permissions": [
     "tabs",
@@ -20,7 +26,12 @@
   },
 
   "action": {
-    "default_icon": "novasnap.png",
+    "default_icon": {
+      "16": "icon16.png",
+      "32": "icon32.png",
+      "48": "icon48.png",
+      "128": "icon128.png"
+    },
     "default_popup": "popup.html",
     "default_title": "NovaSnap"
   },
@@ -31,66 +42,37 @@
 
   "commands": {
     "01-ns-left-half": {
-      "description": "Left Half",
-      "suggested_key": {
-        "default": "Alt+Home"
-      }
+      "description": "Left Half (Recommended: Alt+Home)"
     },
     "02-ns-right-half": {
-      "description": "Right Half",
+      "description": "Right Half (Recommended: Alt+End)",
       "suggested_key": {
         "default": "Alt+End"
       }
     },
     "03-ns-top-half": {
-      "description": "Top Half",
-      "suggested_key": {
-        "default": "Alt+PageUp"
-      }
+      "description": "Top Half (Recommended: Search + PageUp)"
     },
     "04-ns-bottom-half": {
-      "description": "Bottom Half",
-      "suggested_key": {
-        "default": "Alt+PageDown"
-      }
+      "description": "Bottom Half (Recommended: Search + PageDown)"
     },
     "05-ns-top-left": {
-      "description": "Top Left Quarter",
-      "suggested_key": {
-        "default": "Ctrl+Home"
-      }
+      "description": "Top Left Quarter (Recommended: Ctrl+Home)"
     },
     "06-ns-top-right": {
-      "description": "Top Right Quarter",
-      "suggested_key": {
-        "default": "Ctrl+End"
-      }
+      "description": "Top Right Quarter (Recommended: Ctrl+End)"
     },
     "07-ns-bottom-left": {
-      "description": "Bottom Left Quarter",
-      "suggested_key": {
-        "default": "Ctrl+Shift+Home"
-      }
+      "description": "Bottom Left Quarter (Recommended: Ctrl+Shift+Home)"
     },
     "08-ns-bottom-right": {
-      "description": "Bottom Right Quarter",
-      "suggested_key": {
-        "default": "Ctrl+Shift+End"
-      }
+      "description": "Bottom Right Quarter (Recommended: Ctrl+Shift+End)"
     },
     "09-ns-maximize": {
-      "description": "Maximize",
-      "suggested_key": {
-        "default": "Alt+Shift+F"
-      }
+      "description": "Maximize (Recommended: Alt+Shift+F)"
     },
     "10-ns-center": {
-      "description": "Center",
-      "suggested_key": {
-        "default": "Alt+Shift+C"
-      }
+      "description": "Center (Recommended: Alt+Shift+C)"
     }
   }
 }
-
-
