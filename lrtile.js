@@ -12,23 +12,21 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Move/resize windows with two modifiers and arrows.
-// ChromeOS: Ctr+Shift+Arrow Ctrl+Search+Arrows expand/shrink
+// lrTile - Manifest V3 Service Worker
 
-// Configurable options
-let lrOptions = { on: 1, rows: 6, cols: 6, border: 2, step: 2, logLevel: 0 };
+let lrOptions = { on: 1, border: 2, logLevel: 0 };
+let lrDisplays = [];
 
-// Available displays, updated on change.
-let lrDisplays = new Array();
-
-// LOGGING: console.log() uses two separate outputs:
-// * background:  go to chrome://extensions/ and click on
-//                inspect views BACKGROUND PAGE for the extension
-// * options: right click on the form and select Inspect
+// Cycle state for subsequent keypresses
+let lastAction = null;
+let lastWindowId = null;
+let lastActionTime = 0;
+let cycleIndex = 0;
+const CYCLE_TIMEOUT = 1000; // 1 second timeout to cycle layouts
 
 // printf-like logging, no deep object print
 function L(level, ...args) {
-    if (1 || level <= lrOptions.logLevel) {
+    if (level <= lrOptions.logLevel) {
         console.log(PF(...args));
     }
 }
@@ -41,187 +39,239 @@ function PF() {  // simplified printf
     return res;
 }
 
-function g(id) { return document.getElementById(id); }
-
-function clGet(entry, fn) {  // Local storage read + logging
-    chrome.storage.local.get(entry, ret => {
-        console.log("GET ", entry, " returns ", ret);
-        fn(ret);
-    });
-}
-
-function openKeyConfig() {
-    chrome.windows.create({type: "popup",
-	url: "chrome://extensions/configureCommands" });
-}
-
-// Returns the display area that contains the top left corner of the window.
-function getDisplayArea(x, y) {
-    for (i = 0; i < lrDisplays.length; i++) {
+// Returns the display area that contains the center of the window.
+function getDisplayArea(win) {
+    if (!win) return null;
+    
+    // Calculate window center
+    const cX = win.left + Math.floor(win.width / 2);
+    const cY = win.top + Math.floor(win.height / 2);
+    
+    for (let i = 0; i < lrDisplays.length; i++) {
         const d = lrDisplays[i].workArea;
-        if (x >= d.left && x < d.left + d.width &&
-            y >= d.top && y < d.top + d.height) {
+        if (cX >= d.left && cX < d.left + d.width &&
+            cY >= d.top && cY < d.top + d.height) {
             return [ d.left, d.top, d.width, d.height ];
         }
+    }
+    // Fallback to first display if not found
+    if (lrDisplays.length > 0) {
+        const d = lrDisplays[0].workArea;
+        return [ d.left, d.top, d.width, d.height ];
     }
     return null;
 }
 
 // Handler for the various commands.
-function doCmd(cmd, win) {
-    if (!lrOptions.on) return;
+async function doCmd(cmd, win) {
+    let triggeredViaShortcut = false;
+    // 1. Ensure we have the active window.
+    if (!win) {
+        triggeredViaShortcut = true;
+        const wt = {"windowTypes": ["normal", "popup"]};
+        try {
+            win = await chrome.windows.getLastFocused(wt);
+        } catch (e) {
+            L(0, "Failed to get last focused window: %s", e);
+            return;
+        }
+    }
     if (!win) return L(0, "no window, nothing to do");
-    let [wX, wY, wW, wH] = [ win.left, win.top, win.width, win.height ];
-    L(0, "CMD %s window %dx%d@%d,%d type %s id %s",
-      cmd, wW, wH, wX, wY, win.type, win.id);
 
-    // Chrome already excludes space for the menubar at the top or bottom.
-    const [mX, mY, mW, mH] = getDisplayArea(wX, wY);
-    let rows = Math.max(lrOptions.rows, 4);
-    let cols = Math.max(lrOptions.cols, 4);
-    if (mW > 3000) cols *= 2;  // adjust for 4k display
-    if (mH > 1500) rows *= 2;
-    const [minW, minH] = [lrOptions.step, lrOptions.step];
-    const [dX, dY] = [Math.floor(mW / cols), Math.floor(mH / rows)];
-
-    // x0,y0 x1,y1 are window coordinates in grid units relative to the display.
-    let x0 = Math.round((wX - mX) / dX), y0 = Math.round((wY - mY) / dY);
-    let x1 = Math.round((wX + wW - mX) / dX), y1 = Math.round((wY + wH - mY) / dY);
-    // Enforce min size.
-    if (x1 - x0 < minW) x1 = Math.min(cols, x0 + minW); // first, expand right
-    if (x1 - x0 < minW) x0 = Math.max(0, x1 - minW); // then expand left.
-    if (x1 - x0 < minW) return L(0, "screen too narrow!");
-
-    if (y1 - y0 < minH) y1 = Math.min(rows, y0 + minH); // first, expand low
-    if (y1 - y0 < minH) y0 = Math.max(0, y1 - minH); // then expand top.
-    if (y1 - y0 < minH) return L(0, "screen too short!");
-
-    const o_x0 = x0, o_x1 = x1, o_y0 = y0, o_y1 = y1; // save old position.
-
-    L(0, "  before: %d,%d %d,%d  absolute %d,%d %d,%d",
-      x0, y0, x1, y1, mX + x0 * dX, mY + y0 * dY, mX + x1 * dX, mY + y1 * dY);
-    // Processing: change x0 x1 y0 y1 as fit.
-    switch (cmd.substring(3)) { // drop initial XX- prefix
-    default:
-	L(0, "unrecognized command %s", cmd);
-	break;
-
-    case 'lr-full':
-	x0 = 0; y0 = 0; x1 = cols; y1 = rows;
-	break;
-
-    case 'lr-wide':
-	if (x1 < cols) x1++;
-	else if (x0 > 0) x0--;
-	break;
-
-    case 'lr-narrow':
-	if (x1 - x0 > minW) x1--;
-	break;
-
-    case 'lr-tall':
-	if (y1 < rows) y1++;
-	else if (y0 > 0) y0--;
-	break;
-
-    case 'lr-short':
-	if (y1 - y0 > minH) y1--;
-	break;
-
-    case 'lr-left':
-	if (x0 > 0) { x0--; x1--; }
-	else if (x1 - x0 > minW) x1--;
-	break;
-
-    case 'lr-right':
-	if (x1 < cols) { x0++; x1++; }
-	else if (x0 < cols - minW && x1 - x0 > minW) x0++;
-	break;
-
-    case 'lr-down':
-	if (y1 < rows) { y0++; y1++; }
-	else if (y0 < rows - minH && y1 - y0 > minH) y0++;
-	break;
-
-    case 'lr-up':
-	if (y0 > 0) { y0--; y1--; }
-	else if (y1 - y0 > minH) y1--;
-	break;
+    // Safety check: If triggered via a global keyboard shortcut,
+    // ensure the target Chrome window actually has system focus.
+    // This prevents accidentally moving background Chrome windows
+    // when the user is currently working in a Linux app or another user's window.
+    if (triggeredViaShortcut && !win.focused) {
+        L(0, "Chrome window is not active system-wide, aborting to prevent background movement");
+        return;
     }
 
-    L(0, "  after:  %d,%d %d,%d  absolute %d,%d %d,%d",
-      x0, y0, x1, y1, mX + x0 * dX, mY + y0 * dY, mX + x1 * dX, mY + y1 * dY);
+    try {
+        // 2. Fetch options and display info ON-DEMAND.
+        const [options, displays] = await Promise.all([
+            chrome.storage.local.get(null),
+            chrome.system.display.getInfo()
+        ]);
 
-    if (x0 == o_x0 && x1 == o_x1 && y0 == o_y0 && y1 == o_y1) return;
-    // Compute new position
-    wX = mX + x0 * dX;
-    wW = (x1 - x0) * dX - lrOptions.border;
-    wY = mY + y0 * dY;
-    wH = (y1 - y0) * dY - lrOptions.border;
+        if (options && Object.keys(options).length > 0) {
+            lrOptions = { ...lrOptions, ...options };
+        }
+        lrDisplays = displays;
 
-    chrome.windows.update(win.id, { left: wX, top: wY, width: wW, height: wH });
-}
+        if (!lrOptions.on) return;
+        
+        let [wX, wY, wW, wH] = [ win.left, win.top, win.width, win.height ];
+        L(0, "CMD %s window %dx%d@%d,%d type %s id %s",
+          cmd, wW, wH, wX, wY, win.type, win.id);
 
-function getLrDisplays() {
-    chrome.system.display.getInfo(displays => {
-	console.log("LRDisplay Info", displays);
-	lrDisplays = displays;
-    });
-}
+        const displayArea = getDisplayArea(win);
+        if (!displayArea) return L(0, "no display area found");
+        const [mX, mY, mW, mH] = displayArea;
+        
+        const border = parseInt(lrOptions.border) || 0;
+        
+        let newX = wX, newY = wY, newW = wW, newH = wH;
+        
+        // Normalize command name (remove prefix like "01-")
+        const action = cmd.replace(/^[0-9]+-/, '');
+        
+        // Calculate cycle index
+        const now = Date.now();
+        if (action === lastAction && win.id === lastWindowId && (now - lastActionTime) < CYCLE_TIMEOUT) {
+            cycleIndex = (cycleIndex + 1) % 3; // Cycle through 3 sizes: 1/2 -> 1/3 -> 2/3
+        } else {
+            cycleIndex = 0;
+        }
+        
+        lastAction = action;
+        lastWindowId = win.id;
+        lastActionTime = now;
 
-function loadOptions() { clGet(lrOptions, ret => { lrOptions = ret; } ); };
+        // Helper dimensions
+        const oneHalfW = Math.floor(mW / 2);
+        const oneThirdW = Math.floor(mW / 3);
+        const twoThirdsW = Math.floor(mW * 2 / 3);
+        
+        const oneHalfH = Math.floor(mH / 2);
+        const oneThirdH = Math.floor(mH / 3);
+        const twoThirdsH = Math.floor(mH * 2 / 3);
 
-function initLrTile() {
-    loadOptions();
-    getLrDisplays(); // initialize
-    chrome.system.display.onDisplayChanged.addListener(getLrDisplays);
-    chrome.runtime.onMessage.addListener(loadOptions);  // msg from options page
-    chrome.commands.onCommand.addListener(cmd => {
-        // windowTypes = normal, popup, devtools, [panel, app]. Unfortunately
-        // app and panel are not visible to chrome extensions.
-        const wt = {"windowTypes": Object.values(chrome.windows.WindowType)};
-        chrome.windows.getLastFocused(wt, win => { doCmd(cmd, win) });
-    });
+        switch (action) {
+        case 'lr-left-half':
+            newX = mX;
+            newY = mY;
+            newH = mH - border;
+            if (cycleIndex === 0) {
+                newW = oneHalfW - border;
+            } else if (cycleIndex === 1) {
+                newW = oneThirdW - border;
+            } else { // 2
+                newW = twoThirdsW - border;
+            }
+            break;
+            
+        case 'lr-right-half':
+            newY = mY;
+            newH = mH - border;
+            if (cycleIndex === 0) {
+                newX = mX + oneHalfW;
+                newW = oneHalfW - border;
+            } else if (cycleIndex === 1) {
+                newX = mX + twoThirdsW; // occupies right 1/3
+                newW = oneThirdW - border;
+            } else { // 2
+                newX = mX + oneThirdW; // occupies right 2/3
+                newW = twoThirdsW - border;
+            }
+            break;
+            
+        case 'lr-top-half':
+            newX = mX;
+            newW = mW - border;
+            if (cycleIndex === 0) {
+                newY = mY;
+                newH = oneHalfH - border;
+            } else if (cycleIndex === 1) {
+                newY = mY;
+                newH = oneThirdH - border;
+            } else { // 2
+                newY = mY;
+                newH = twoThirdsH - border;
+            }
+            break;
+            
+        case 'lr-bottom-half':
+            newX = mX;
+            newW = mW - border;
+            if (cycleIndex === 0) {
+                newY = mY + oneHalfH;
+                newH = oneHalfH - border;
+            } else if (cycleIndex === 1) {
+                newY = mY + twoThirdsH; // occupies bottom 1/3
+                newH = oneThirdH - border;
+            } else { // 2
+                newY = mY + oneThirdH; // occupies bottom 2/3
+                newH = twoThirdsH - border;
+            }
+            break;
 
-    if (0) {  // Optional: open options page
-        chrome.windows.create({type: "normal",
-	    url: "chrome://extensions/?options="+chrome.runtime.id});
+        case 'lr-top-left':
+            newX = mX;
+            newY = mY;
+            newW = oneHalfW - border;
+            newH = oneHalfH - border;
+            break;
+        case 'lr-top-right':
+            newX = mX + oneHalfW;
+            newY = mY;
+            newW = oneHalfW - border;
+            newH = oneHalfH - border;
+            break;
+        case 'lr-bottom-left':
+            newX = mX;
+            newY = mY + oneHalfH;
+            newW = oneHalfW - border;
+            newH = oneHalfH - border;
+            break;
+        case 'lr-bottom-right':
+            newX = mX + oneHalfW;
+            newY = mY + oneHalfH;
+            newW = oneHalfW - border;
+            newH = oneHalfH - border;
+            break;
+            
+        case 'lr-maximize':
+            newX = mX;
+            newY = mY;
+            newW = mW - border;
+            newH = mH - border;
+            break;
+        case 'lr-center':
+            newX = mX + Math.floor((mW - wW) / 2);
+            newY = mY + Math.floor((mH - wH) / 2);
+            break;
+        default:
+            L(0, "unrecognized command %s", cmd);
+            return;
+        }
+
+        // Ensure window is in "normal" state to allow moving/resizing
+        if (win.state !== "normal" && win.state !== "maximized") {
+            await chrome.windows.update(win.id, { state: "normal" });
+            await chrome.windows.update(win.id, { left: newX, top: newY, width: newW, height: newH });
+        } else {
+            await chrome.windows.update(win.id, { state: "normal", left: newX, top: newY, width: newW, height: newH });
+        }
+    } catch (err) {
+        console.error("Error in doCmd:", err);
     }
-    openKeyConfig();
 }
 
-function initOptionsPage() {
-    // Build a <table> with current key mappings and link to update
-    chrome.commands.getAll(function(commands) {
-	const change = "<a id='set_keys' href='#'>(change)</a>";
-	let t = "<tr><th>Key" + change + "</th><th>Action</th></tr>";
-	commands.forEach(cmd => {
-	    const val = cmd.shortcut.replace(" Arrow","");
-	    t += "<tr><td>" + val + "</td><td>" +
-                 cmd.description + "</td></tr>";
-	});
-	g('keys').innerHTML = '<table>' + t + '</table>';
-	g('set_keys').addEventListener('click', openKeyConfig);
-    });
+// Listen for messages from popup or options page
+chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+    if (request.update) {
+        chrome.storage.local.get(null, options => {
+            if (options) lrOptions = { ...lrOptions, ...options };
+        });
+    } else if (request.action) {
+        if (request.windowId) {
+            // Get the specific window requested by the popup
+            chrome.windows.get(request.windowId, win => {
+                if (win) doCmd(request.action, win);
+            });
+        } else {
+            doCmd(request.action);
+        }
+    }
+});
 
-    // restore input fields from local storage.
-    clGet(lrOptions, ret => {
-	lrOptions = ret;
-	g('on').checked = ret.on;
-	for (i in lrOptions) if (g(i)) g(i).value = lrOptions[i];
-    });
+// Listen for keyboard commands
+chrome.commands.onCommand.addListener(cmd => {
+    doCmd(cmd);
+});
 
-    const doSave = (ev) => {
-	for (let i in lrOptions) if (g(i)) lrOptions[i] = g(i).value;
-	lrOptions.on = g('on').checked;
-	console.log("--- Saved values", lrOptions);
-	chrome.storage.local.set(lrOptions);
-	chrome.runtime.sendMessage({"update": true});
-	window.close();
-    };
-    // XXX how to attach to document close?
-    g('save').addEventListener('click', doSave);
-}
 
-// Initialize
-window.location.pathname.match(/generated/) ? initLrTile() : initOptionsPage();
+
+
+

@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            margin: 0;
+            padding: 10px;
+            width: 220px;
+            background-color: #f5f5f7;
+            user-select: none;
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+            margin-bottom: 10px;
+        }
+        .button {
+            background: white;
+            border: 1px solid #d2d2d7;
+            border-radius: 6px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.1s ease;
+        }
+        .button:hover {
+            background: #e8e8ed;
+            border-color: #a1a1a6;
+        }
+        .button:active {
+            background: #d2d2d7;
+        }
+        /* CSS Icons */
+        .icon {
+            width: 24px;
+            height: 18px;
+            border: 2px solid #86868b;
+            border-radius: 3px;
+            position: relative;
+            box-sizing: border-box;
+        }
+        .icon-fill {
+            position: absolute;
+            background: #0071e3;
+            box-sizing: border-box;
+        }
+        
+        /* Halves */
+        .left-half .icon-fill { left: 0; top: 0; width: 50%; height: 100%; }
+        .right-half .icon-fill { right: 0; top: 0; width: 50%; height: 100%; }
+        .top-half .icon-fill { left: 0; top: 0; width: 100%; height: 50%; }
+        .bottom-half .icon-fill { left: 0; bottom: 0; width: 100%; height: 50%; }
+        
+        /* Quarters */
+        .top-left .icon-fill { left: 0; top: 0; width: 50%; height: 50%; }
+        .top-right .icon-fill { right: 0; top: 0; width: 50%; height: 50%; }
+        .bottom-left .icon-fill { left: 0; bottom: 0; width: 50%; height: 50%; }
+        .bottom-right .icon-fill { right: 0; bottom: 0; width: 50%; height: 50%; }
+        
+        /* Maximize & Center */
+        .maximize .icon-fill { left: 0; top: 0; width: 100%; height: 100%; }
+        .center .icon-fill { left: 25%; top: 25%; width: 50%; height: 50%; }
+
+        .footer {
+            border-top: 1px solid #d2d2d7;
+            padding-top: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 11px;
+            color: #86868b;
+        }
+        .footer a {
+            color: #0071e3;
+            text-decoration: none;
+            cursor: pointer;
+        }
+        .footer a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <!-- Quarters Grid (Top) -->
+    <div class="grid">
+        <div class="button top-left" data-action="lr-top-left" title="Top Left Quarter">
+            <div class="icon"><div class="icon-fill"></div></div>
+        </div>
+        <div class="button top-half" data-action="lr-top-half" title="Top Half">
+            <div class="icon"><div class="icon-fill"></div></div>
+        </div>
+        <div class="button top-half" style="visibility: hidden;"></div> <!-- spacer -->
+        <div class="button top-right" data-action="lr-top-right" title="Top Right Quarter">
+            <div class="icon"><div class="icon-fill"></div></div>
+        </div>
+    </div>
+
+    <!-- Halves Grid (Middle) -->
+    <div class="grid">
+        <div class="button left-half" data-action="lr-left-half" title="Left Half">
+            <div class="icon"><div class="icon-fill"></div></div>
+        </div>
+        <div class="button maximize" data-action="lr-maximize" title="Maximize">
+            <div class="icon"><div class="icon-fill"></div></div>
+        </div>
+        <div class="button center" data-action="lr-center" title="Center">
+            <div class="icon"><div class="icon-fill"></div></div>
+        </div>
+        <div class="button right-half" data-action="lr-right-half" title="Right Half">
+            <div class="icon"><div class="icon-fill"></div></div>
+        </div>
+    </div>
+
+    <!-- Quarters Grid (Bottom) -->
+    <div class="grid">
+        <div class="button bottom-left" data-action="lr-bottom-left" title="Bottom Left Quarter">
+            <div class="icon"><div class="icon-fill"></div></div>
+        </div>
+        <div class="button bottom-half" data-action="lr-bottom-half" title="Bottom Half">
+            <div class="icon"><div class="icon-fill"></div></div>
+        </div>
+        <div class="button bottom-half" style="visibility: hidden;"></div> <!-- spacer -->
+        <div class="button bottom-right" data-action="lr-bottom-right" title="Bottom Right Quarter">
+            <div class="icon"><div class="icon-fill"></div></div>
+        </div>
+    </div>
+
+    <div class="footer">
+        <span>lrTile v0.2</span>
+        <a id="open-options">Preferences...</a>
+    </div>
+
+    <script src="popup.js"></script>
+</body>
+</html>

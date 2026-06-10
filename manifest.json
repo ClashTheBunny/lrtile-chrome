@@ -1,12 +1,11 @@
 {
-  "manifest_version": 2,
+  "manifest_version": 3,
 
   "name": "lrTile, Tiling Window mover for Chrome",
   "short_name": "lrtile",
   "description":
-     "lrTile uses two modifiers and cursor keys to move and resize
-     windows on a grid of configurable size.",
-  "version": "0.1",
+     "lrTile uses keyboard shortcuts and a popup menu to snap windows to halves, quarters, and more, Rectangle-style.",
+  "version": "0.3",
   "icons": {"256": "lrtile.png"},
 
   "permissions": [
@@ -16,33 +15,56 @@
   ],
 
   "options_ui": {
-    "page": "options.html"
+    "page": "options.html",
+    "open_in_tab": true
+  },
+
+  "action": {
+    "default_icon": "lrtile.png",
+    "default_popup": "popup.html",
+    "default_title": "lrTile"
   },
 
   "background" : {
-    "scripts": [
-	"lrtile.js"
-    ],
-    "persistent": true
+    "service_worker": "lrtile.js"
   },
 
   "commands": {
-    // Cannot suggest more than 4 shortcuts so open the extension settings
-    // page on startup. Leading digits enforce presentation order in settings.
-    "01-lr-left":   { "description": "Move Left (Ctrl+Shift+Left)"
-       , "suggested_key": { "default": "Ctrl+Shift+Left" }
+    "01-lr-left-half": {
+      "description": "Left Half",
+      "suggested_key": { "default": "Ctrl+Shift+Left" }
     },
-    "02-lr-right":  { "description": "Move Right (Ctrl+Shift+Right)"
-       , "suggested_key": { "default": "Ctrl+Shift+Right" }
+    "02-lr-right-half": {
+      "description": "Right Half",
+      "suggested_key": { "default": "Ctrl+Shift+Right" }
     },
-    "03-lr-up":     { "description": "Move up (Ctrl+Shift+Up)" },
-    "04-lr-down":   { "description": "Move Down (Ctrl+Shift+Down)" },
-
-    "11-lr-narrow": { "description": "Narrower (Ctrl+Search+Left)" },
-    "12-lr-wide":   { "description": "Wider (Ctrl+Search+Right)" },
-    "13-lr-short":  { "description": "Shorter (Ctrl+Search+Up)" },
-    "14-lr-tall":   { "description": "Taller (Ctrl+Search+Down)" },
-
-    "21-lr-full":   { "description": "Full screen (Alt+Shift+F)" }
+    "03-lr-top-half": {
+      "description": "Top Half"
+    },
+    "04-lr-bottom-half": {
+      "description": "Bottom Half"
+    },
+    "05-lr-top-left": {
+      "description": "Top Left Quarter"
+    },
+    "06-lr-top-right": {
+      "description": "Top Right Quarter"
+    },
+    "07-lr-bottom-left": {
+      "description": "Bottom Left Quarter"
+    },
+    "08-lr-bottom-right": {
+      "description": "Bottom Right Quarter"
+    },
+    "09-lr-maximize": {
+      "description": "Maximize",
+      "suggested_key": { "default": "Alt+Shift+F" }
+    },
+    "10-lr-center": {
+      "description": "Center",
+      "suggested_key": { "default": "Alt+Shift+C" }
+    }
   }
 }
+
+
