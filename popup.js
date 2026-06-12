@@ -1,4 +1,4 @@
-// popup.js - MV3 Popup Script for lrTile
+// popup.js - MV3 Popup Script for NovaSnap
 
 document.querySelectorAll('[data-action]').forEach(el => {
     el.addEventListener('click', async () => {
